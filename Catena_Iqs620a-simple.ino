@@ -158,7 +158,7 @@ static constexpr const char *filebasename(const char *s)
 |
 \****************************************************************************/
 
-static const char sVersion[] = "1.0.0";
+static const char sVersion[] = "1.1.0";
 
 /****************************************************************************\
 |
@@ -374,7 +374,7 @@ uint8_t configure_iqs620n()
 
     res |= gI2C.writeRegister(PXS_SETTINGS_0, (uint8_t *)nPXS_Setup_0);
 
-    res |= gI2C.writeRegister(PXS_SETTINGS_1, (uint8_t *)nPXS_Setup_1);
+    res |= gI2C.writeRegister(PXS_SETTINGS_1, (uint8_t *)nPXS);
 
     res |= gI2C.writeRegister(PXS_UI_SETTINGS, (uint8_t *)nPXSUi);
 
@@ -410,14 +410,20 @@ void iqsRead()
         // System flags, Global Events and PXS UI Flags - 9 bytes
         res |= gI2C.readRegisters(SYSTEM_FLAGS, &iqs620n.SystemFlags.SystemFlags, sizeof(&iqs620n.SystemFlags.SystemFlags));
 
-        // Read PXS Channel Data - 12 bytes
+        // Read PXS Channel 0 Data - 12 bytes
         res |= gI2C.readRegisters(CHANNEL0_DATA, &iqs620n.Ch[0].Ch_Low, sizeof(&iqs620n.Ch[0].Ch_Low));
 
-        // Read PXS Channel Data - 12 bytes
-        res |= gI2C.readRegisters(CHANNEL3_DATA, &iqs620n.Ch[3].Ch_Low, sizeof(&iqs620n.Ch[3].Ch_Low));
+        // Read channel 1 for SAR
+        res |= gI2C.readRegisters(CHANNEL1_DATA, &iqs620n.Ch[1].Ch_Low, sizeof(&iqs620n.Ch[1].Ch_Low));
 
-        // Read LTA value of Channel 1 for Movement mode
-        res |= gI2C.readRegisters(LTA+2, &iqs620n.LTA1.Ch_Low, sizeof(&iqs620n.LTA1.Ch_Low));
+        // Read channel 2 for SAR
+        res |= gI2C.readRegisters(CHANNEL2_DATA, &iqs620n.Ch[2].Ch_Low, sizeof(&iqs620n.Ch[2].Ch_Low));
+
+        // Read channel 4 for SAR
+        res |= gI2C.readRegisters(CHANNEL4_DATA, &iqs620n.Ch[4].Ch_Low, sizeof(&iqs620n.Ch[4].Ch_Low));
+
+        // Read channel 5 for SAR
+        res |= gI2C.readRegisters(CHANNEL5_DATA, &iqs620n.Ch[5].Ch_Low, sizeof(&iqs620n.Ch[5].Ch_Low));
         }
 
     // A read error occurred
@@ -456,34 +462,21 @@ void loop()
         iqsRead();
 
         // SAR Count
-        int16_t sarCount = iqs620n.Ch[0].Ch;  // Display Channel Data
-        gCatena.SafePrintf("SAR counts: %d", sarCount);
+        int16_t sarCountCh0 = iqs620n.Ch[0].Ch;  // Display Channel Data
+        gCatena.SafePrintf("SAR counts ch0: %d", sarCountCh0);
+        int16_t sarCountCh1 = iqs620n.Ch[1].Ch;  // Display Channel Data
+        gCatena.SafePrintf("\t\tSAR counts ch1: %d", sarCountCh1);
+        int16_t sarCountCh2 = iqs620n.Ch[2].Ch;  // Display Channel Data
+        gCatena.SafePrintf("\t\tSAR counts ch2: %d", sarCountCh2);
 
-        // Movement
-        if(iqs620n.SARMetalFlags.Quick_Release)
-            {
-            int16_t movement = iqs620n.Ch[1].Ch;	// Display Channel 1 Data
-            gCatena.SafePrintf("\tMovement: %d", movement);
-            }
-        else
-            {
-            gCatena.SafePrintf("\tMovement:  -");
-            }
+        // Hall Effect Amplitude
+        int16_t hallEffectch4 = iqs620n.Ch[4].Ch;  // get Channel Data
+        int16_t hallEffectch5 = iqs620n.Ch[5].Ch;  // get Channel Data
 
-        // Temperature
-        const float a_b = 0.3333;   //281438.5;
-        const uint16_t c = 300;
-        float tempDelta = 0;
-        int16_t tempdec = 5;
-        float printCh = 0;
-        tempDelta = (c-a_b*(float)iqs620n.Ch[3].Ch)/2;
-        tempdec = abs((long long)(tempDelta*10 - floor(tempDelta)*10));
-        // tempDelta = tempDelta - 40;
-        int16_t channelData = iqs620n.Ch[3].Ch;
+        int16_t Amplitude = hallEffectch4 - hallEffectch5;
+        gCatena.SafePrintf("\t\tHall Effect Amplitude: %d", Amplitude);
 
-        gCatena.SafePrintf("\tTemperature: %d.%02d\n", (int)tempDelta, getDecimal(tempDelta));
-        // gCatena.SafePrintf("        Delta: %d\n", tempdec);
-        // gCatena.SafePrintf("        Ch Data: %d\n", channelData);
+        gCatena.SafePrintf("\n");
         delay(1000);
         }
 

@@ -762,8 +762,14 @@ typedef struct IQS625 {
 #define VERSION_INFO              0x00
 #define SYSTEM_FLAGS              0x10
 #define CHANNEL0_DATA              0x20
+#define CHANNEL1_DATA              0x22
+#define CHANNEL2_DATA              0x24
 #define CHANNEL3_DATA              0x26
-#define LTA			                  0x30
+#define CHANNEL4_DATA              0x28
+#define CHANNEL5_DATA              0x2A
+#define LTA                         0x30
+#define HALL_CH4                  0x17
+#define HALL_CH5                  0x18
 #define PXS_SETTINGS_0            0x40
 #define PXS_SETTINGS_1            0x50
 #define PXS_UI_SETTINGS           0x60
@@ -907,6 +913,9 @@ const static uint8_t nPXS_Setup_0[] = {
 		nPXS_SETTINGS0_10,
 		nPXS_SETTINGS0_11
 };
+
+// Dev Setup - 0x50
+const static uint8_t nPXS[] = {nPXS_SETTINGS1_8};
 
 // PXS Settings 1 - 0x50
 const static uint8_t nPXS_Setup_1[] = {
