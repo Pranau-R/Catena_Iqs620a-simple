@@ -477,7 +477,7 @@ void loop()
         gCatena.SafePrintf("\t\tHall Effect Amplitude: %d", Amplitude);
 
         gCatena.SafePrintf("\n");
-        delay(1000);
+        delay(5000);
         }
 
 /**************************************************************************************************/
