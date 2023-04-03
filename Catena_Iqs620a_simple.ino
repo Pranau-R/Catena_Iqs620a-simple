@@ -32,8 +32,7 @@ Author:
 
 #include <cmath>
 #include <type_traits>
-#include "Arduino.h"
-#include "Catena_Iqs620a.h"
+#include <Catena_Iqs620a.h>
 #include <stm32_eeprom.h>
 
 using namespace McciCatena;
@@ -105,7 +104,7 @@ static constexpr const char *filebasename(const char *s)
 |
 \****************************************************************************/
 
-static const char sVersion[] = "1.2.0";
+static const char sVersion[] = "1.2.1";
 
 /****************************************************************************\
 |
