@@ -136,7 +136,7 @@ static constexpr const char *filebasename(const char *s)
 |
 \****************************************************************************/
 
-static const char sVersion[] = "1.3.0";
+static const char sVersion[] = "1.3.1";
 
 /****************************************************************************\
 |
@@ -155,6 +155,8 @@ Catena gCatena;
 Catena::LoRaWAN gLoRaWAN;
 
 cIQS620A gIQS620A;
+//  Sensor present
+bool fProximity;
 
 //
 // the LED
@@ -340,7 +342,16 @@ void setup_iqs()
     Wire.begin();
     delay(100);
 
-    gIQS620A.begin();
+    if(!gIQS620A.begin())
+        {
+        gCatena.SafePrintf("No IQS620A Sensor found: check wiring\n");
+        fProximity = false;
+        }
+    else
+        {
+        gCatena.SafePrintf("IQS620A Sensor found!\n");
+        fProximity = true;
+        }
     }
 
 uint32_t gRebootMs;
@@ -409,30 +420,33 @@ void fillBuffer(TxBuffer_t &b)
     b.putV(vBus);
     flag |= FlagsSensorPort9::Vcc;
 
-    // IQS620A data
-    gIQS620A.iqsRead();
-
-    // SAR Count
-    int16_t sarCountCh0 = gIQS620A.getSarCountCh0();  // Display Channel Data
-    gCatena.SafePrintf("SAR counts ch0: %d", sarCountCh0);
-    b.put2uf(sarCountCh0);
-    flag |= FlagsSensorPort9::SarCh0;
-
-    int16_t sarCountCh1 = gIQS620A.getSarCountCh1();  // Display Channel Data
-    gCatena.SafePrintf("\t\tSAR counts ch1: %d", sarCountCh1);
-    b.put2uf(sarCountCh1);
-    flag |= FlagsSensorPort9::SarCh1;
-
-    int16_t sarCountCh2 = gIQS620A.getSarCountCh2();  // Display Channel Data
-    gCatena.SafePrintf("\t\tSAR counts ch2: %d", sarCountCh2);
-    b.put2uf(sarCountCh2);
-    flag |= FlagsSensorPort9::SarCh2;
-
-    // Hall Effect Amplitude
-    int16_t Amplitude = gIQS620A.getAmplitude();
-    gCatena.SafePrintf("\t\tHall Effect Amplitude: %d\n", Amplitude);
-    b.put2sf(Amplitude);
-    flag |= FlagsSensorPort9::Amplitude;
+    if (fProximity)
+        {
+        // IQS620A data
+        gIQS620A.iqsRead();
+    
+        // SAR Count
+        int16_t sarCountCh0 = gIQS620A.getSarCountCh0();  // Display Channel Data
+        gCatena.SafePrintf("SAR counts ch0: %d", sarCountCh0);
+        b.put2uf(sarCountCh0);
+        flag |= FlagsSensorPort9::SarCh0;
+    
+        int16_t sarCountCh1 = gIQS620A.getSarCountCh1();  // Display Channel Data
+        gCatena.SafePrintf("\t\tSAR counts ch1: %d", sarCountCh1);
+        b.put2uf(sarCountCh1);
+        flag |= FlagsSensorPort9::SarCh1;
+    
+        int16_t sarCountCh2 = gIQS620A.getSarCountCh2();  // Display Channel Data
+        gCatena.SafePrintf("\t\tSAR counts ch2: %d", sarCountCh2);
+        b.put2uf(sarCountCh2);
+        flag |= FlagsSensorPort9::SarCh2;
+    
+        // Hall Effect Amplitude
+        int16_t Amplitude = gIQS620A.getAmplitude();
+        gCatena.SafePrintf("\t\tHall Effect Amplitude: %d\n", Amplitude);
+        b.put2sf(Amplitude);
+        flag |= FlagsSensorPort9::Amplitude;
+        }
     }
 
 void startSendingUplink(void)
