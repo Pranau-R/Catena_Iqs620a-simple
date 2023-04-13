@@ -136,7 +136,7 @@ static constexpr const char *filebasename(const char *s)
 |
 \****************************************************************************/
 
-static const char sVersion[] = "1.3.1";
+static const char sVersion[] = "1.3.2";
 
 /****************************************************************************\
 |
@@ -190,7 +190,7 @@ unsigned gTxCycleCount;
 
 /*
 
-Name:	setup()
+Name:   setup()
 
 Function:
         Arduino setup function.
@@ -424,23 +424,23 @@ void fillBuffer(TxBuffer_t &b)
         {
         // IQS620A data
         gIQS620A.iqsRead();
-    
+
         // SAR Count
         int16_t sarCountCh0 = gIQS620A.getSarCountCh0();  // Display Channel Data
         gCatena.SafePrintf("SAR counts ch0: %d", sarCountCh0);
         b.put2uf(sarCountCh0);
         flag |= FlagsSensorPort9::SarCh0;
-    
+
         int16_t sarCountCh1 = gIQS620A.getSarCountCh1();  // Display Channel Data
         gCatena.SafePrintf("\t\tSAR counts ch1: %d", sarCountCh1);
         b.put2uf(sarCountCh1);
         flag |= FlagsSensorPort9::SarCh1;
-    
+
         int16_t sarCountCh2 = gIQS620A.getSarCountCh2();  // Display Channel Data
         gCatena.SafePrintf("\t\tSAR counts ch2: %d", sarCountCh2);
         b.put2uf(sarCountCh2);
         flag |= FlagsSensorPort9::SarCh2;
-    
+
         // Hall Effect Amplitude
         int16_t Amplitude = gIQS620A.getAmplitude();
         gCatena.SafePrintf("\t\tHall Effect Amplitude: %d\n", Amplitude);
