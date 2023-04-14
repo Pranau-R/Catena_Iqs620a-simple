@@ -139,7 +139,7 @@ static constexpr const char *filebasename(const char *s)
 |
 \****************************************************************************/
 
-static const char sVersion[] = "1.3.2";
+static const char sVersion[] = "1.3.3";
 
 /****************************************************************************\
 |
@@ -435,7 +435,7 @@ void fillBuffer(TxBuffer_t &b)
         uint16_t sarCountCh1 = gIQS620A.getSarCountCh1();  // Display Channel Data
         uint16_t sarCountCh2 = gIQS620A.getSarCountCh2();  // Display Channel Data
 
-        gCatena.SafePrintf("SAR:     Ch0: %d\tCh1: %d\tCh2: %d\n",
+        gCatena.SafePrintf("SAR:     Ch0: %d  Ch1: %d  Ch2: %d\n",
                 sarCountCh0,
                 sarCountCh1,
                 sarCountCh2
