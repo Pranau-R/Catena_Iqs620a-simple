@@ -45,7 +45,10 @@ using namespace McciCatena;
 |
 \****************************************************************************/
 
-enum class FlagsSensorPort9 : uint8_t
+// message format
+static constexpr uint8_t kMessageFormat = 0x2f;
+
+enum class FlagsSensorPort1 : uint8_t
     {
     Vbat = 1 << 0,      // vBat
     Vcc = 1 << 1,       // vBus
@@ -56,12 +59,12 @@ enum class FlagsSensorPort9 : uint8_t
     Amplitude = 1 << 6, // Amplitude
     };
 
-constexpr FlagsSensorPort9 operator| (const FlagsSensorPort9 lhs, const FlagsSensorPort9 rhs)
+constexpr FlagsSensorPort1 operator| (const FlagsSensorPort1 lhs, const FlagsSensorPort1 rhs)
     {
-    return FlagsSensorPort9(uint8_t(lhs) | uint8_t(rhs));
+    return FlagsSensorPort1(uint8_t(lhs) | uint8_t(rhs));
     };
 
-FlagsSensorPort9 operator|= (FlagsSensorPort9 &lhs, const FlagsSensorPort9 &rhs)
+FlagsSensorPort1 operator|= (FlagsSensorPort1 &lhs, const FlagsSensorPort1 &rhs)
     {
     lhs = lhs | rhs;
     return lhs;
@@ -136,7 +139,7 @@ static constexpr const char *filebasename(const char *s)
 |
 \****************************************************************************/
 
-static const char sVersion[] = "1.3.2";
+static const char sVersion[] = "1.3.3";
 
 /****************************************************************************\
 |
@@ -402,23 +405,25 @@ void loop()
 void fillBuffer(TxBuffer_t &b)
     {
     b.begin();
-    FlagsSensorPort9 flag;
 
-    flag = FlagsSensorPort9(0);
+    // insert format byte
+    b.put(kMessageFormat);
 
-    // we have no format byte for this.
+    FlagsSensorPort1 flag;
+
+    flag = FlagsSensorPort1(0);
     uint8_t * const pFlag = b.getp();
     b.put(0x00); /* will be set to the flags */
 
     float vBat = gCatena.ReadVbat();
     gCatena.SafePrintf("vBat:    %d mV\n", (int) (vBat * 1000.0f));
     b.putV(vBat);
-    flag |= FlagsSensorPort9::Vbat;
+    flag |= FlagsSensorPort1::Vbat;
 
     float vBus = gCatena.ReadVbus();
     gCatena.SafePrintf("Vbus:    %d mV\n", (int) (vBus * 1000.0f));
     b.putV(vBus);
-    flag |= FlagsSensorPort9::Vcc;
+    flag |= FlagsSensorPort1::Vcc;
 
     if (fProximity)
         {
@@ -426,27 +431,31 @@ void fillBuffer(TxBuffer_t &b)
         gIQS620A.iqsRead();
 
         // SAR Count
-        int16_t sarCountCh0 = gIQS620A.getSarCountCh0();  // Display Channel Data
-        gCatena.SafePrintf("SAR counts ch0: %d", sarCountCh0);
+        uint16_t sarCountCh0 = gIQS620A.getSarCountCh0();  // Display Channel Data
+        uint16_t sarCountCh1 = gIQS620A.getSarCountCh1();  // Display Channel Data
+        uint16_t sarCountCh2 = gIQS620A.getSarCountCh2();  // Display Channel Data
+
+        gCatena.SafePrintf("SAR:     Ch0: %d  Ch1: %d  Ch2: %d\n",
+                sarCountCh0,
+                sarCountCh1,
+                sarCountCh2
+                );
         b.put2uf(sarCountCh0);
-        flag |= FlagsSensorPort9::SarCh0;
-
-        int16_t sarCountCh1 = gIQS620A.getSarCountCh1();  // Display Channel Data
-        gCatena.SafePrintf("\t\tSAR counts ch1: %d", sarCountCh1);
         b.put2uf(sarCountCh1);
-        flag |= FlagsSensorPort9::SarCh1;
-
-        int16_t sarCountCh2 = gIQS620A.getSarCountCh2();  // Display Channel Data
-        gCatena.SafePrintf("\t\tSAR counts ch2: %d", sarCountCh2);
         b.put2uf(sarCountCh2);
-        flag |= FlagsSensorPort9::SarCh2;
+        flag |= FlagsSensorPort1::SarCh0;
+        flag |= FlagsSensorPort1::SarCh1;
+        flag |= FlagsSensorPort1::SarCh2;
 
         // Hall Effect Amplitude
         int16_t Amplitude = gIQS620A.getAmplitude();
-        gCatena.SafePrintf("\t\tHall Effect Amplitude: %d\n", Amplitude);
+        gCatena.SafePrintf("Hall Effect Amplitude:  %d\n",
+                Amplitude);
         b.put2sf(Amplitude);
-        flag |= FlagsSensorPort9::Amplitude;
+        flag |= FlagsSensorPort1::Amplitude;
         }
+
+    *pFlag = uint8_t(flag);
     }
 
 void startSendingUplink(void)
@@ -468,7 +477,7 @@ void startSendingUplink(void)
         fConfirmed = true;
         }
 
-    constexpr unsigned kUplinkPort = 9;
+    constexpr unsigned kUplinkPort = 1;
     gLoRaWAN.SendBuffer(b.getbase(), b.getn(), sendBufferDoneCb, NULL, fConfirmed, kUplinkPort);
     }
 
