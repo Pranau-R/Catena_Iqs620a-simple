@@ -105,7 +105,7 @@ static constexpr const char *filebasename(const char *s)
 |
 \****************************************************************************/
 
-static const char sVersion[] = "1.0.0";
+static const char sVersion[] = "1.0.0-pre1";
 
 /****************************************************************************\
 |
@@ -118,6 +118,7 @@ Catena gCatena;
 
 cIQS620A gIQS620A;
 bool fProximity;
+uint8_t readyPin = D12;
 
 //
 // the LED
@@ -274,8 +275,9 @@ void setup_iqs()
         {
         gCatena.SafePrintf("IQS620A Sensor found!\n");
         fProximity = true;
-        }
 
+        gIQS620A.setRdyPin(readyPin);
+        }
     // gIQS620A.begin();
     }
 
@@ -288,21 +290,29 @@ void loop()
     if (fProximity)
         {
         // IQS620A data
-        gIQS620A.iqsRead();
+        if (gIQS620A.isIqsReady())
+            {
+            gIQS620A.iqsRead();
 
-        // SAR Count
-        int16_t Ch0Data = gIQS620A.getCh0Data();  // Display Channel Data
-        gCatena.SafePrintf("Channel 0 data: %d", Ch0Data);
-        int16_t Ch1Data = gIQS620A.getCh1Data();  // Display Channel Data
-        gCatena.SafePrintf("\t\tChannel 1 data: %d", Ch1Data);
-        int16_t Ch2Data = gIQS620A.getCh2Data();  // Display Channel Data
-        gCatena.SafePrintf("\t\tChannel 2 data: %d", Ch2Data);
+            // SAR Count
+            int16_t Ch0Data = gIQS620A.getCh0Data();  // Display Channel Data
+            gCatena.SafePrintf("Channel 0 data: %d", Ch0Data);
+            int16_t Ch1Data = gIQS620A.getCh1Data();  // Display Channel Data
+            gCatena.SafePrintf("\t\tChannel 1 data: %d", Ch1Data);
+            int16_t Ch2Data = gIQS620A.getCh2Data();  // Display Channel Data
+            gCatena.SafePrintf("\t\tChannel 2 data: %d", Ch2Data);
 
-        // Hall Effect Amplitude
-        int16_t Amplitude = gIQS620A.getAmplitude();
-        gCatena.SafePrintf("\t\tHall Effect Amplitude: %d", Amplitude);
+            // Hall Effect Amplitude
+            int16_t Amplitude = gIQS620A.getAmplitude();
+            gCatena.SafePrintf("\t\tHall Effect Amplitude: %d", Amplitude);
 
-        gCatena.SafePrintf("\n");
+            gCatena.SafePrintf("\n");
+            }
+        else
+            {
+            gCatena.SafePrintf("No Data!\n");
+            }
+
         }
     delay(5000);
     }
