@@ -15,7 +15,7 @@ Copyright notice:
         See project LICENSE file for license information.
 
 Author:
-        Pranau R, MCCI Corporation	April 2023
+        Pranau R, MCCI Corporation  April 2023
 
 */
 
@@ -118,6 +118,7 @@ Catena gCatena;
 
 cIQS620A gIQS620A;
 bool fProximity;
+static int touchCounter;
 uint8_t readyPin = D12;
 
 //
@@ -277,8 +278,9 @@ void setup_iqs()
         fProximity = true;
 
         gIQS620A.setRdyPin(readyPin);
+        touchCounter = 0;
+        attachInterrupt(digitalPinToInterrupt(readyPin), myIntHandler, FALLING); // enable IQS620A interrupt
         }
-    // gIQS620A.begin();
     }
 
 uint32_t gRebootMs;
@@ -286,33 +288,36 @@ uint32_t gRebootMs;
 void loop()
     {
     gCatena.poll();
+    // gIQS620A.waitForIqsReady();
+    }
 
+void myIntHandler()
+    {
     if (fProximity)
         {
-        // IQS620A data
-        if (gIQS620A.isIqsReady())
-            {
-            gIQS620A.iqsRead();
+        gIQS620A.iqsRead();
 
-            // SAR Count
-            int16_t Ch0Data = gIQS620A.getCh0Data();  // Display Channel Data
-            gCatena.SafePrintf("Channel 0 data: %d", Ch0Data);
-            int16_t Ch1Data = gIQS620A.getCh1Data();  // Display Channel Data
-            gCatena.SafePrintf("\t\tChannel 1 data: %d", Ch1Data);
-            int16_t Ch2Data = gIQS620A.getCh2Data();  // Display Channel Data
-            gCatena.SafePrintf("\t\tChannel 2 data: %d", Ch2Data);
-
-            // Hall Effect Amplitude
-            int16_t Amplitude = gIQS620A.getAmplitude();
-            gCatena.SafePrintf("\t\tHall Effect Amplitude: %d", Amplitude);
-
-            gCatena.SafePrintf("\n");
-            }
-        else
-            {
-            gCatena.SafePrintf("No Data!\n");
-            }
-
+        touchCounter = touchCounter + 1;
+        // Number of touches
+        gCatena.SafePrintf("Number of Touches: %d\n", touchCounter);
+        printData();
         }
-    delay(5000);
+    }
+
+void printData()
+    {
+    // SAR Count
+    int16_t Ch0Data = gIQS620A.getCh0Data();  // Read Channel Data
+    int16_t Ch1Data = gIQS620A.getCh1Data();  // Read Channel Data
+    int16_t Ch2Data = gIQS620A.getCh2Data();  // Read Channel Data
+
+    gCatena.SafePrintf(
+            "\t\tChannel 0 data: %d\t\tChannel 1 data: %d\t\tChannel 2 data: %d", // Display Channels Data
+            Ch0Data,
+            Ch1Data,
+            Ch2Data);
+
+    // Hall Effect Amplitude
+    int16_t Amplitude = gIQS620A.getAmplitude();
+    gCatena.SafePrintf("\t\tHall Effect Amplitude: %d\n", Amplitude);
     }
