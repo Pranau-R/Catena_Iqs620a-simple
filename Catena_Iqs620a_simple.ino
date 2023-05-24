@@ -119,7 +119,11 @@ Catena gCatena;
 cIQS620A gIQS620A;
 bool fProximity;
 static int touchCounter;
-uint8_t readyPin = D12;
+int readyPin = D12;
+
+int16_t Ch0Data;
+int16_t Ch1Data;
+int16_t Ch2Data;
 
 //
 // the LED
@@ -288,7 +292,10 @@ uint32_t gRebootMs;
 void loop()
     {
     gCatena.poll();
-    // gIQS620A.waitForIqsReady();
+    delay(1000);
+//    bool iqsReady = gIQS620A.waitForIqsReady();
+//    if (iqsReady == true)
+//        myIntHandler();
     }
 
 void myIntHandler()
@@ -297,20 +304,23 @@ void myIntHandler()
         {
         gIQS620A.iqsRead();
 
-        touchCounter = touchCounter + 1;
-        // Number of touches
-        gCatena.SafePrintf("Number of Touches: %d\n", touchCounter);
-        printData();
+        // Touch data
+        Ch0Data = gIQS620A.getCh0Data();  // Read Channel Data
+        Ch1Data = gIQS620A.getCh1Data();  // Read Channel Data
+        Ch2Data = gIQS620A.getCh2Data();  // Read Channel Data
+
+        if (Ch0Data < 300 && Ch1Data < 300 && Ch2Data < 300)
+            {
+            touchCounter = touchCounter + 1;
+            // Number of touches
+            gCatena.SafePrintf("Number of Touches: %d\n", touchCounter);
+            printData();
+            }
         }
     }
 
 void printData()
     {
-    // SAR Count
-    int16_t Ch0Data = gIQS620A.getCh0Data();  // Read Channel Data
-    int16_t Ch1Data = gIQS620A.getCh1Data();  // Read Channel Data
-    int16_t Ch2Data = gIQS620A.getCh2Data();  // Read Channel Data
-
     gCatena.SafePrintf(
             "\t\tChannel 0 data: %d\t\tChannel 1 data: %d\t\tChannel 2 data: %d", // Display Channels Data
             Ch0Data,
