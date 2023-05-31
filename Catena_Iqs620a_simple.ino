@@ -118,6 +118,7 @@ Catena gCatena;
 
 cIQS620A gIQS620A;
 bool fProximity;
+bool fTouchProx;
 static int touchCounter;
 int readyPin = D12;
 
@@ -309,12 +310,17 @@ void myIntHandler()
         Ch1Data = gIQS620A.getCh1Data();  // Read Channel Data
         Ch2Data = gIQS620A.getCh2Data();  // Read Channel Data
 
-        if (Ch0Data < 300 && Ch1Data < 300 && Ch2Data < 300)
+        if (Ch0Data < 200 && Ch1Data < 200 && Ch2Data < 200 && fTouchProx == false)
             {
             touchCounter = touchCounter + 1;
+            fTouchProx = true;
             // Number of touches
             gCatena.SafePrintf("Number of Touches: %d\n", touchCounter);
             printData();
+            }
+        else
+            {
+            fTouchProx = false;
             }
         }
     }
